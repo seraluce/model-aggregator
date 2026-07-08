@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label'
 import { isEmail } from '@/lib/validate'
 import { useI18n } from '@/i18n'
 
-// Matches the server rule (routes/auth.ts zod schema).
 const PASSWORD_MIN = 8
 
 interface AuthStatus {
@@ -17,11 +16,13 @@ interface AuthStatus {
   email: string | null
 }
 
-function Centered({ children }: { children: ReactNode }) {
+function Logo() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">{children}</div>
-    </div>
+    <svg viewBox="0 0 64 64" className="size-10" fill="none">
+      <circle cx="32" cy="32" r="11" className="fill-foreground" />
+      <circle cx="32" cy="32" r="22" className="stroke-foreground" strokeWidth="6" strokeLinecap="round"
+        strokeDasharray="104 34" transform="rotate(-60 32 32)" style={{ opacity: 0.45 }} />
+    </svg>
   )
 }
 
@@ -30,8 +31,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [setupCode, setSetupCode] = useState('')
-  // Revealed only after the server asks for it (remote first-run setup). A
-  // browser on the same machine as the server never sees this field.
   const [codeRequired, setCodeRequired] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -39,9 +38,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
 
   const isSetup = mode === 'setup'
 
-  // Inline field feedback; the server stays authoritative. Only the setup form
-  // enforces the password minimum client-side (an existing password of any
-  // length must still be able to log in).
   const emailError = !email.trim()
     ? t('validation.required')
     : !isEmail(email)
@@ -63,8 +59,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
     setError('')
     try {
       const payload: Record<string, string> = { email, password }
-      // Only the setup flow carries a code, and only once the server has asked
-      // for it. The server ignores it for local (loopback) setup.
       if (isSetup && setupCode) payload.setupCode = setupCode.trim()
       const res = await apiFetch<{ token: string }>(isSetup ? '/api/auth/setup' : '/api/auth/login', {
         method: 'POST',
@@ -73,8 +67,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
       setToken(res.token)
       onAuthed()
     } catch (err) {
-      // The server gates remote first-run setup behind a one-time code; reveal
-      // the field so the operator can paste the code from the server logs.
       if (isSetup && (err as ApiError).code === 'setup_code_required') {
         setCodeRequired(true)
       }
@@ -85,21 +77,28 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
   }
 
   return (
-    <Centered>
-      <div className="mb-6 flex items-center gap-2">
-        <span className="inline-block size-2 rounded-full bg-foreground" />
-        <span className="font-semibold tracking-tight text-sm">ModelHub</span>
-      </div>
-      <div className="rounded-3xl border bg-card p-6">
-        <h1 className="text-base font-medium">{isSetup ? t('auth.createYourAccount') : t('auth.signIn')}</h1>
-        <p className="text-xs text-muted-foreground mt-1 mb-4">
-          {isSetup
-            ? t('auth.setupDescription')
-            : t('auth.loginDescription')}
+    <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out">
+      <div className="flex flex-col items-center mb-8">
+        <div className="mb-4">
+          <Logo />
+        </div>
+        <h1 className="text-xl font-semibold tracking-tight">ModelHub</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Unified LLM Router &middot; {isSetup ? 'Get started' : 'Welcome back'}
         </p>
-        <form onSubmit={submit} className="space-y-3" noValidate>
+      </div>
+
+      <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm">
+        <h2 className="text-sm font-medium mb-1">
+          {isSetup ? t('auth.createYourAccount') : t('auth.signIn')}
+        </h2>
+        <p className="text-xs text-muted-foreground mb-5">
+          {isSetup ? t('auth.setupDescription') : t('auth.loginDescription')}
+        </p>
+
+        <form onSubmit={submit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label className="text-xs" htmlFor="auth-email">{t('auth.email')}</Label>
+            <Label className="text-xs font-medium" htmlFor="auth-email">{t('auth.email')}</Label>
             <Input
               id="auth-email"
               type="email"
@@ -108,11 +107,13 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
               onChange={e => setEmail(e.target.value)}
               placeholder={t('auth.emailPlaceholder')}
               aria-invalid={attempted && !!emailError}
+              className="h-9"
             />
             {attempted && <FieldError error={emailError} />}
           </div>
+
           <div className="space-y-1.5">
-            <Label className="text-xs" htmlFor="auth-password">{t('auth.password')}</Label>
+            <Label className="text-xs font-medium" htmlFor="auth-password">{t('auth.password')}</Label>
             <Input
               id="auth-password"
               type="password"
@@ -121,12 +122,14 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
               onChange={e => setPassword(e.target.value)}
               placeholder={isSetup ? t('auth.passwordPlaceholderSetup') : t('auth.passwordPlaceholderLogin')}
               aria-invalid={attempted && !!passwordError}
+              className="h-9"
             />
             {attempted && <FieldError error={passwordError} />}
           </div>
+
           {isSetup && codeRequired && (
-            <div className="space-y-1.5">
-              <Label className="text-xs" htmlFor="auth-setup-code">{t('auth.setupCode')}</Label>
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+              <Label className="text-xs font-medium" htmlFor="auth-setup-code">{t('auth.setupCode')}</Label>
               <Input
                 id="auth-setup-code"
                 type="text"
@@ -134,17 +137,35 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
                 value={setupCode}
                 onChange={e => setSetupCode(e.target.value)}
                 placeholder={t('auth.setupCodePlaceholder')}
+                className="h-9"
               />
               <p className="text-xs text-muted-foreground">{t('auth.setupCodeHint')}</p>
             </div>
           )}
-          {error && <p className="text-destructive text-xs">{error}</p>}
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? (isSetup ? t('auth.creating') : t('auth.signingIn')) : isSetup ? t('auth.createAccount') : t('auth.signIn')}
+
+          {error && (
+            <p className="text-destructive text-xs flex items-center gap-1.5">
+              <svg viewBox="0 0 16 16" fill="currentColor" className="size-3.5 shrink-0">
+                <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1ZM7 5a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V5Zm1 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+              </svg>
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" className="w-full h-9" disabled={busy}>
+            {busy ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="animate-spin size-3.5" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+                  <path d="M14 8A6 6 0 0 1 2 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                {isSetup ? t('auth.creating') : t('auth.signingIn')}
+              </span>
+            ) : isSetup ? t('auth.createAccount') : t('auth.signIn')}
           </Button>
         </form>
       </div>
-    </Centered>
+    </div>
   )
 }
 
@@ -164,24 +185,74 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [refetch])
 
   function onAuthed() {
-    // New session: drop any cached (unauthenticated) data and re-check status.
     queryClient.invalidateQueries()
     refetch()
   }
 
-  if (isLoading) return <Centered><p className="text-sm text-muted-foreground text-center">{t('auth.loading')}</p></Centered>
-  if (isError || !data) {
+  if (isLoading) {
     return (
-      <Centered>
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-xs text-destructive">
-          {t('auth.serverUnreachableBefore')}<code className="font-mono">npm run dev</code>{t('auth.serverUnreachableAfter')}
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <svg className="animate-spin size-5 text-muted-foreground" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+            <path d="M14 8A6 6 0 0 1 2 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <p className="text-sm text-muted-foreground">{t('auth.loading')}</p>
         </div>
-      </Centered>
+      </div>
     )
   }
 
-  if (data.needsSetup) return <AuthForm mode="setup" onAuthed={onAuthed} />
-  if (!data.authenticated) return <AuthForm mode="login" onAuthed={onAuthed} />
+  if (isError || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="flex flex-col items-center text-center max-w-xs">
+          <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6 text-destructive">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t('auth.serverUnreachableBefore')}<code className="font-mono text-xs">npm run dev</code>{t('auth.serverUnreachableAfter')}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (data.needsSetup) {
+    return (
+      <AuthLayout>
+        <AuthForm mode="setup" onAuthed={onAuthed} />
+      </AuthLayout>
+    )
+  }
+
+  if (!data.authenticated) {
+    return (
+      <AuthLayout>
+        <AuthForm mode="login" onAuthed={onAuthed} />
+      </AuthLayout>
+    )
+  }
 
   return <>{children}</>
+}
+
+function AuthLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="relative min-h-screen flex items-center justify-center bg-background overflow-hidden p-4">
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 select-none">
+        <div className="absolute -top-32 -right-32 size-96 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 size-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute top-1/3 left-1/4 size-64 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/3 size-48 rounded-full bg-primary/5 blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm">
+        {children}
+      </div>
+    </div>
+  )
 }
