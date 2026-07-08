@@ -1,6 +1,6 @@
 <div align="center">
 
-# FreeLLMAPI
+# ModelHub
 
 **One OpenAI-compatible endpoint. 18 free LLM providers. 161 free models. ~1.7B tokens per month.**
 
@@ -49,9 +49,9 @@ Your router updates its own model catalog. Free installs get each new model 30 d
 
 Every serious AI lab now offers a free tier — a few million tokens a month, a few thousand requests a day. On its own each tier is a toy. Stacked together, they add up to roughly **1.7 billion tokens per month** of working inference capacity, across 160+ models from small-and-fast to reasonably capable.
 
-The problem is that stacking them by hand is painful: eighteen different SDKs, eighteen different rate limits, eighteen places a request can fail. FreeLLMAPI collapses that into one OpenAI-compatible endpoint. Point any OpenAI client library at your local server, and it routes transparently across whichever providers you've added keys for.
+The problem is that stacking them by hand is painful: eighteen different SDKs, eighteen different rate limits, eighteen places a request can fail. ModelHub collapses that into one OpenAI-compatible endpoint. Point any OpenAI client library at your local server, and it routes transparently across whichever providers you've added keys for.
 
-And the free-tier landscape shifts weekly: providers launch models, retire them, and change quotas without notice. FreeLLMAPI tracks all of that for you. The router pulls a signed model catalog from [freellmapi.co](https://freellmapi.co) on its own, so your install keeps up without a `git pull`. See [Premium (live catalog)](#premium-live-catalog) for how fast it keeps up.
+And the free-tier landscape shifts weekly: providers launch models, retire them, and change quotas without notice. ModelHub tracks all of that for you. The router pulls a signed model catalog from [freellmapi.co](https://freellmapi.co) on its own, so your install keeps up without a `git pull`. See [Premium (live catalog)](#premium-live-catalog) for how fast it keeps up.
 
 ## Supported providers
 
@@ -96,7 +96,7 @@ The full, always-current list lives at **[freellmapi.co/models](https://freellma
 
 - **OpenAI-compatible** — `POST /v1/chat/completions` and `GET /v1/models` work with the official OpenAI SDKs and any OpenAI-compatible client (LangChain, LlamaIndex, Continue, Hermes, etc.). Just change `base_url`.
 - **Responses API** — `POST /v1/responses` (the wire format current Codex CLI versions require) is implemented as a translating shim over the same router, with full streaming events and tool calls.
-- **Editor autocomplete** — `POST /v1/completions` translates legacy prompt/suffix requests into the same router, so VS Code ghost-text clients such as Continue can use FreeLLMAPI for inline suggestions.
+- **Editor autocomplete** — `POST /v1/completions` translates legacy prompt/suffix requests into the same router, so VS Code ghost-text clients such as Continue can use ModelHub for inline suggestions.
 - **Anthropic Messages API** — `POST /v1/messages` (plus `/v1/messages/count_tokens`) speaks Anthropic's wire format over the same router, so **Claude Code** and the official Anthropic SDKs run against your free pool. `GET /v1/models` is content-negotiated (Anthropic shape when the client sends `anthropic-version`, OpenAI shape otherwise), and Claude families (`opus` / `sonnet` / `haiku` / `default`) map to `auto` or a pinned model on the Keys page. See [Anthropic / Claude clients](#anthropic--claude-clients).
 - **Image generation & text-to-speech** — `POST /v1/images/generations` and `POST /v1/audio/speech` route across the providers that serve media models, including custom OpenAI-compatible media endpoints. Browse and toggle them on the dashboard's **Models → Image / Audio** tabs.
 - **Self-updating model catalog** — the router syncs a signed catalog from freellmapi.co twice a day: new models, quota changes, and provider quirk fixes land in your install automatically. See [Premium (live catalog)](#premium-live-catalog).
@@ -215,7 +215,7 @@ Open http://localhost:5173 (the Vite dev UI), add your provider keys on the **Ke
 
 ### Declarative startup config
 
-For repeatable Docker/server installs, FreeLLMAPI can apply a JSON config on
+For repeatable Docker/server installs, ModelHub can apply a JSON config on
 every boot. Set `FREEAPI_CONFIG_PATH=/path/to/freellmapi.config.json` or put the
 same JSON in `FREEAPI_CONFIG_JSON`. The config is idempotent: existing keys,
 custom providers, model edits, fallback rows, and routing settings are updated
@@ -260,7 +260,7 @@ node server/dist/index.js     # server + dashboard both served on :3001
 
 ## Docker
 
-FreeLLMAPI publishes a single production image that contains the Express server and the built React dashboard:
+ModelHub publishes a single production image that contains the Express server and the built React dashboard:
 
 ```bash
 docker pull ghcr.io/seraluce/model-aggregator:latest   # or pin a release, e.g. :v1.2.3
@@ -293,7 +293,7 @@ FREEAPI_DB_BACKUP_KEY=64-char-hex-backup-key
 FREEAPI_DB_BACKUP_INTERVAL_MS=300000
 ```
 
-When the database file is missing at startup, FreeLLMAPI restores the backup
+When the database file is missing at startup, ModelHub restores the backup
 before migrations run. While the server is running it uploads a fresh encrypted
 backup periodically. If `FREEAPI_DB_BACKUP_KEY` is omitted, the app uses
 `ENCRYPTION_KEY` for the backup envelope too.
@@ -306,7 +306,7 @@ A native menu-bar app lives in [`desktop/`](./desktop): the entire router +
 dashboard running locally from your tray, with a glass popover showing live
 request stats.
 
-![FreeLLMAPI desktop app](repo-assets/desktop.png)
+![ModelHub desktop app](repo-assets/desktop.png)
 
 **[Download from Releases](https://github.com/seraluce/model-aggregator/releases/latest)** — the macOS `.dmg` and the Windows `.exe` installer are built and attached to every release by the [`desktop-release`](.github/workflows/desktop-release.yml) workflow. Or build it from this repo in a few minutes:
 
@@ -315,8 +315,8 @@ request stats.
 ```bash
 npm install
 npm install --prefix desktop  # install desktop dependencies
-npm run desktop:dist          # macOS  → desktop/dist-electron/FreeLLMAPI-…-arm64.dmg
-npm run desktop:dist:win      # Windows → "desktop/dist-electron/FreeLLMAPI Setup ….exe"
+npm run desktop:dist          # macOS  → desktop/dist-electron/ModelHub-…-arm64.dmg
+npm run desktop:dist:win      # Windows → "desktop/dist-electron/ModelHub Setup ….exe"
 ```
 
 > Locally built apps are unsigned, so Windows SmartScreen may warn on first run
@@ -343,9 +343,9 @@ another machine or into a container):
 
 | OS | Location |
 |----|----------|
-| Windows | `%APPDATA%\FreeLLMAPI\` (e.g. `C:\Users\<you>\AppData\Roaming\FreeLLMAPI\`) |
-| macOS | `~/Library/Application Support/FreeLLMAPI/` |
-| Linux | `~/.config/FreeLLMAPI/` |
+| Windows | `%APPDATA%\ModelHub\` (e.g. `C:\Users\<you>\AppData\Roaming\ModelHub\`) |
+| macOS | `~/Library/Application Support/ModelHub/` |
+| Linux | `~/.config/ModelHub/` |
 
 That folder holds `freeapi.db` (all keys, models, settings, encrypted at rest)
 and `config.json` (window/theme/port/LAN preferences). Copy both to move an
@@ -375,13 +375,13 @@ register the locale in `client/src/i18n/I18nProvider.tsx` (and
 
 ## Works with OB-1 and other clients
 
-FreeLLMAPI is the free tier for **[OB-1](https://github.com/Overbrilliant/ob-1)**:
+ModelHub is the free tier for **[OB-1](https://github.com/Overbrilliant/ob-1)**:
 the OB-1 CLI can clone, configure, start, health-check, and wire this proxy into
 its settings automatically. A new OB-1 user can pick **Start free** and reach a
 working OpenAI-compatible endpoint before creating any hosted account.
 
 It is also useful on its own. Any client that can target an OpenAI-compatible
-base URL can use FreeLLMAPI:
+base URL can use ModelHub:
 
 - **OB-1**: managed automatically by the CLI, including anonymous providers.
 - **opencode, aider, Continue, LangChain, LlamaIndex**: set `base_url` to
@@ -391,7 +391,7 @@ base URL can use FreeLLMAPI:
 - **Local GPU boxes**: add custom OpenAI-compatible endpoints for Ollama,
   llama.cpp, LM Studio, vLLM, or an internal gateway.
 
-FreeLLMAPI is local-first and single-user by design. Your provider keys stay in
+ModelHub is local-first and single-user by design. Your provider keys stay in
 your SQLite database, encrypted at rest, and requests go from your machine to the
 upstream providers you enabled.
 
@@ -487,11 +487,11 @@ for chunk in stream:
 
 **VS Code ghost-text autocomplete (Continue)**
 
-FreeLLMAPI exposes `/v1/completions` for editor autocomplete clients that send legacy OpenAI prompt/suffix requests. Example Continue config:
+ModelHub exposes `/v1/completions` for editor autocomplete clients that send legacy OpenAI prompt/suffix requests. Example Continue config:
 
 ```yaml
 models:
-  - name: FreeLLMAPI Autocomplete
+  - name: ModelHub Autocomplete
     provider: openai
     model: auto
     apiBase: http://localhost:3001/v1
@@ -616,7 +616,7 @@ The default family, per-provider toggles, and priorities live on the dashboard's
 
 ### Anthropic / Claude clients
 
-FreeLLMAPI also speaks Anthropic's Messages API, so anything built for Claude — including **Claude Code** and the official Anthropic SDKs — can run against your free pool. Point the client at your server's **origin** (Anthropic clients append `/v1/messages` themselves) and authenticate with your unified key. Both `x-api-key` and `Authorization: Bearer` are accepted.
+ModelHub also speaks Anthropic's Messages API, so anything built for Claude — including **Claude Code** and the official Anthropic SDKs — can run against your free pool. Point the client at your server's **origin** (Anthropic clients append `/v1/messages` themselves) and authenticate with your unified key. Both `x-api-key` and `Authorization: Bearer` are accepted.
 
 ```bash
 curl http://localhost:3001/v1/messages \
@@ -702,10 +702,10 @@ Request volume, success rate, tokens in and out, average latency, and per-provid
 
 ## Context Handoff
 
-When FreeLLMAPI falls over to a different model mid-conversation (quota, rate limit, cooldown), the new model has no idea it is picking up someone else's task. **Context handoff** adds a single compact `system` message to the outbound request that tells the new model exactly that:
+When ModelHub falls over to a different model mid-conversation (quota, rate limit, cooldown), the new model has no idea it is picking up someone else's task. **Context handoff** adds a single compact `system` message to the outbound request that tells the new model exactly that:
 
 ```
-FreeLLMAPI context handoff:
+ModelHub context handoff:
 You are taking over an ongoing conversation from another model (groq:llama-3 → google:gemini-flash).
 Continue the user's task using the conversation context already provided in this request.
 Do not restart the task, re-ask already answered setup questions, or discard prior tool results.
@@ -730,7 +730,7 @@ FREELLMAPI_CONTEXT_HANDOFF=on_model_switch
 - Session key: `X-Session-Id` header if present, otherwise SHA-1 of the first user message (same as sticky sessions).
 - Storage is in-memory only. Nothing is written to disk or logged.
 
-> **Important:** Context Handoff improves continuity for conversations routed through FreeLLMAPI. It cannot recover provider-internal hidden state or messages that were never sent to the proxy.
+> **Important:** Context Handoff improves continuity for conversations routed through ModelHub. It cannot recover provider-internal hidden state or messages that were never sent to the proxy.
 
 ## Limitations
 
@@ -880,7 +880,7 @@ Removed since the April 2026 review: Hugging Face, Moonshot, and MiniMax direct 
 
 ## Disclaimer
 
-**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of FreeLLMAPI, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
+**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of ModelHub, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
 
 ## Star History
 

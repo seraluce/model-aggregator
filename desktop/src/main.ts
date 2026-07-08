@@ -14,8 +14,8 @@ const DEFAULT_PORT = 31415;
 // Lean posture: one instance, menu-bar only. GPU stays ON — vibrancy
 // (the popover/dashboard glass) needs GPU compositing; with hardware
 // acceleration disabled, transparent windows render an opaque white.
-app.setName('FreeLLMAPI');
-app.setPath('userData', path.join(app.getPath('appData'), 'FreeLLMAPI'));
+app.setName('ModelHub');
+app.setPath('userData', path.join(app.getPath('appData'), 'ModelHub'));
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -129,7 +129,7 @@ if (!app.requestSingleInstanceLock()) {
         defaultId: 1,
         cancelId: 1,
         title: 'Allow LAN access',
-        message: 'Expose FreeLLMAPI to your local network?',
+        message: 'Expose ModelHub to your local network?',
         detail:
           'The server will bind to 0.0.0.0 so other devices (Tailscale, VMs, ' +
           'phones on your Wi-Fi) can reach it at http://<this-machine-ip>:' +
@@ -174,7 +174,7 @@ if (!app.requestSingleInstanceLock()) {
       saveConfig({ ...cfg, port });
       sessionToken = ensureSessionToken();
       const tray = buildTray(port, sessionToken, () => locale, () => loadConfig().lanAccess ?? false, toggleLanAccess);
-      console.log(`[desktop] FreeLLMAPI running on http://${host}:${port}${cfg.lanAccess ? ' (LAN access enabled)' : ''}`);
+      console.log(`[desktop] ModelHub running on http://${host}:${port}${cfg.lanAccess ? ' (LAN access enabled)' : ''}`);
 
       // Dev-only UI verification: FREEAPI_SHOT=1 opens the popover and the
       // dashboard, captures both to /tmp, and quits. FREEAPI_SHOT=hold opens
@@ -217,7 +217,7 @@ if (!app.requestSingleInstanceLock()) {
       }
     } catch (err: any) {
       dialog.showErrorBox(
-        'FreeLLMAPI failed to start',
+        'ModelHub failed to start',
         err?.message ?? String(err),
       );
       app.quit();

@@ -63,7 +63,7 @@ register(new OpenAICompatProvider({
   baseUrl: 'https://openrouter.ai/api/v1',
   extraHeaders: {
     'HTTP-Referer': 'http://localhost:3001',
-    'X-Title': 'FreeLLMAPI',
+    'X-Title': 'ModelHub',
   },
 }));
 
@@ -246,7 +246,7 @@ register(new OpenAICompatProvider({
   name: 'Routeway',
   baseUrl: 'https://api.routeway.ai/v1',
   extraHeaders: {
-    'User-Agent': 'Mozilla/5.0 FreeLLMAPI/1.0',
+    'User-Agent': 'Mozilla/5.0 ModelHub/1.0',
   },
 }));
 

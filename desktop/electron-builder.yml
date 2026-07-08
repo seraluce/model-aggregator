@@ -1,5 +1,5 @@
-appId: com.freellmapi.desktop
-productName: FreeLLMAPI
+appId: com.modelhub.desktop
+productName: ModelHub
 directories:
   output: dist-electron
 files:

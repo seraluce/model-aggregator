@@ -2,7 +2,7 @@
 
 [English](./README.en.md) | **中文**
 
-# FreeLLMAPI
+# ModelHub
 
 **一个 OpenAI 兼容接口，聚合 18 个免费 LLM 提供商、161 个免费模型，每月约 17 亿 Token。**
 
@@ -50,9 +50,9 @@
 
 每个主流 AI 实验室现在都提供免费额度——每月几百万 Token、每天几千次请求。单独看每个额度都很有限，但叠加在一起，大约 **每月 17 亿 Token** 的有效推理容量，涵盖 160 多个模型，从轻量快速到相当能干的都有。
 
-问题在于手动叠加太麻烦：18 种 SDK、18 种不同的频率限制、18 个可能出问题的地方。FreeLLMAPI 将它们整合成一个 OpenAI 兼容的接口。将任意 OpenAI 客户端库指向你的本地服务器，它会透明地在所有已添加密钥的提供商之间路由。
+问题在于手动叠加太麻烦：18 种 SDK、18 种不同的频率限制、18 个可能出问题的地方。ModelHub 将它们整合成一个 OpenAI 兼容的接口。将任意 OpenAI 客户端库指向你的本地服务器，它会透明地在所有已添加密钥的提供商之间路由。
 
-而且免费模型格局每周都在变：提供商推出新模型、下架旧模型、随时调整配额而不另行通知。FreeLLMAPI 会自动跟踪这些变化。路由器会自行从 [freellmapi.co](https://freellmapi.co) 拉取签名的模型目录，这样你的安装就能保持更新，无需手动 `git pull`。详见 [Premium（实时目录）](#premium实时目录)。
+而且免费模型格局每周都在变：提供商推出新模型、下架旧模型、随时调整配额而不另行通知。ModelHub 会自动跟踪这些变化。路由器会自行从 [freellmapi.co](https://freellmapi.co) 拉取签名的模型目录，这样你的安装就能保持更新，无需手动 `git pull`。详见 [Premium（实时目录）](#premium实时目录)。
 
 ## 支持的提供商
 
@@ -97,7 +97,7 @@
 
 - **OpenAI 兼容** — `POST /v1/chat/completions` 和 `GET /v1/models` 可直接配合官方 OpenAI SDK 及任意 OpenAI 兼容客户端（LangChain、LlamaIndex、Continue、Hermes 等）使用，只需修改 `base_url`。
 - **Responses API** — `POST /v1/responses`（当前 Codex CLI 所需的线路格式）作为翻译层在同一个路由器上实现，支持完整流式事件和工具调用。
-- **编辑器自动补全** — `POST /v1/completions` 将传统的 prompt/suffix 请求转换为路由器调用，使 Continue 等 VS Code 内联补全客户端可以使用 FreeLLMAPI。
+- **编辑器自动补全** — `POST /v1/completions` 将传统的 prompt/suffix 请求转换为路由器调用，使 Continue 等 VS Code 内联补全客户端可以使用 ModelHub。
 - **Anthropic Messages API** — `POST /v1/messages`（以及 `/v1/messages/count_tokens`）以 Anthropic 线路格式通过同一路由器通信，因此 **Claude Code** 和官方 Anthropic SDK 可以直接使用你的免费池。`GET /v1/models` 支持内容协商（客户端发送 `anthropic-version` 时返回 Anthropic 格式，否则返回 OpenAI 格式）。Claude 系列名称（`opus` / `sonnet` / `haiku` / `default`）映射到 `auto` 或密钥页面上固定的模型。详见 [Anthropic / Claude 客户端](#anthropic--claude-客户端)。
 - **图像生成 & 文字转语音** — `POST /v1/images/generations` 和 `POST /v1/audio/speech` 可在提供媒体模型的提供商之间路由，包括自定义 OpenAI 兼容的媒体接口。在仪表盘的 **模型 → 图像/音频** 标签页中浏览和切换。
 - **自更新模型目录** — 路由器每天两次从 freellmapi.co 同步签名目录：新模型、配额变化和提供商适配修复会自动应用到你的安装。详见 [Premium（实时目录）](#premium实时目录)。
@@ -210,7 +210,7 @@ npm run dev
 
 ### 声明式启动配置
 
-对于可重复的 Docker/服务器安装，FreeLLMAPI 可以在每次启动时应用 JSON 配置。设置 `FREEAPI_CONFIG_PATH=/path/to/freellmapi.config.json` 或将相同的 JSON 放在 `FREEAPI_CONFIG_JSON` 中。配置是幂等的：现有密钥、自定义提供商、模型编辑、回退行和路由设置会被更新而非重复添加。
+对于可重复的 Docker/服务器安装，ModelHub 可以在每次启动时应用 JSON 配置。设置 `FREEAPI_CONFIG_PATH=/path/to/freellmapi.config.json` 或将相同的 JSON 放在 `FREEAPI_CONFIG_JSON` 中。配置是幂等的：现有密钥、自定义提供商、模型编辑、回退行和路由设置会被更新而非重复添加。
 
 ```json
 {
@@ -251,7 +251,7 @@ node server/dist/index.js     # 服务器和仪表盘都在 :3001 提供
 
 ## Docker
 
-FreeLLMAPI 发布单个生产镜像，包含 Express 服务器和构建好的 React 仪表盘：
+ModelHub 发布单个生产镜像，包含 Express 服务器和构建好的 React 仪表盘：
 
 ```bash
 docker pull ghcr.io/seraluce/model-aggregator:latest   # 或固定版本，如 :v1.2.3
@@ -281,7 +281,7 @@ FREEAPI_DB_BACKUP_KEY=64-char-hex-backup-key
 FREEAPI_DB_BACKUP_INTERVAL_MS=300000
 ```
 
-当数据库文件在启动时缺失，FreeLLMAPI 会在迁移运行前恢复备份。服务器运行时，它会定期上传新的加密备份。如果省略 `FREEAPI_DB_BACKUP_KEY`，应用也会使用 `ENCRYPTION_KEY` 作为备份密钥。
+当数据库文件在启动时缺失，ModelHub 会在迁移运行前恢复备份。服务器运行时，它会定期上传新的加密备份。如果省略 `FREEAPI_DB_BACKUP_KEY`，应用也会使用 `ENCRYPTION_KEY` 作为备份密钥。
 
 更多 Docker 操作和示例请参见 [docker/README.md](./docker/README.md)。
 
@@ -289,7 +289,7 @@ FREEAPI_DB_BACKUP_INTERVAL_MS=300000
 
 [`desktop/`](./desktop) 目录中有一个原生菜单栏应用：路由器+仪表盘直接在系统托盘中本地运行，带有一个半透明弹窗显示实时请求统计。
 
-![FreeLLMAPI 桌面应用](repo-assets/desktop.png)
+![ModelHub 桌面应用](repo-assets/desktop.png)
 
 **[从 Releases 下载](https://github.com/seraluce/model-aggregator/releases/latest)**——macOS `.dmg` 和 Windows `.exe` 安装程序由 [`desktop-release`](.github/workflows/desktop-release.yml) 工作流在每个发布版本中构建并上传。也可以从本仓库中几分钟内构建：
 
@@ -298,8 +298,8 @@ FREEAPI_DB_BACKUP_INTERVAL_MS=300000
 ```bash
 npm install
 npm install --prefix desktop  # 安装桌面依赖
-npm run desktop:dist          # macOS  → desktop/dist-electron/FreeLLMAPI-…-arm64.dmg
-npm run desktop:dist:win      # Windows → "desktop/dist-electron/FreeLLMAPI Setup ….exe"
+npm run desktop:dist          # macOS  → desktop/dist-electron/ModelHub-…-arm64.dmg
+npm run desktop:dist:win      # Windows → "desktop/dist-electron/ModelHub Setup ….exe"
 ```
 
 > 本地构建的应用未签名，Windows SmartScreen 可能在首次运行时弹出警告（选择"更多信息"→"仍要运行"）；macOS 构建可直接启动无需 Gatekeeper 提示。
@@ -320,9 +320,9 @@ npm run desktop:dist:win      # Windows → "desktop/dist-electron/FreeLLMAPI Se
 
 | 操作系统 | 位置 |
 |---------|------|
-| Windows | `%APPDATA%\FreeLLMAPI\`（例如 `C:\Users\<你>\AppData\Roaming\FreeLLMAPI\`） |
-| macOS | `~/Library/Application Support/FreeLLMAPI/` |
-| Linux | `~/.config/FreeLLMAPI/` |
+| Windows | `%APPDATA%\ModelHub\`（例如 `C:\Users\<你>\AppData\Roaming\ModelHub\`） |
+| macOS | `~/Library/Application Support/ModelHub/` |
+| Linux | `~/.config/ModelHub/` |
 
 该文件夹包含 `freeapi.db`（所有密钥、模型、设置，加密存储）和 `config.json`（窗口/主题/端口/局域网偏好）。复制两者即可迁移安装。对于服务器（非桌面）部署，对等的状态文件是 `.env` 文件和 SQLite 数据库 `server/data/freeapi.db`（或 `FREEAPI_DB_PATH` 指向的位置）。
 
@@ -343,16 +343,16 @@ npm run desktop:dist:win      # Windows → "desktop/dist-electron/FreeLLMAPI Se
 
 ## 与 OB-1 及其他客户端配合
 
-FreeLLMAPI 是 **[OB-1](https://github.com/Overbrilliant/ob-1)** 的免费后端：OB-1 CLI 可以自动克隆、配置、启动、健康检查并将此代理接入其设置。新 OB-1 用户可以选择**免费开始**，在创建任何托管账户之前即可获得可用的 OpenAI 兼容接口。
+ModelHub 是 **[OB-1](https://github.com/Overbrilliant/ob-1)** 的免费后端：OB-1 CLI 可以自动克隆、配置、启动、健康检查并将此代理接入其设置。新 OB-1 用户可以选择**免费开始**，在创建任何托管账户之前即可获得可用的 OpenAI 兼容接口。
 
-它本身也很有用。任何可以使用 OpenAI 兼容 base URL 的客户端都可以使用 FreeLLMAPI：
+它本身也很有用。任何可以使用 OpenAI 兼容 base URL 的客户端都可以使用 ModelHub：
 
 - **OB-1**：由 CLI 自动管理，包括匿名提供商。
 - **opencode、aider、Continue、LangChain、LlamaIndex**：将 `base_url` 设置为 `http://localhost:3001/v1`，使用仪表盘中获取的统一密钥。
 - **Claude Code / Anthropic SDKs**：使用 Anthropic 兼容的 `/v1/messages` 接口和下面所述的 `ANTHROPIC_AUTH_TOKEN` 流程。
 - **本地 GPU 设备**：为 Ollama、llama.cpp、LM Studio、vLLM 或内部网关添加自定义 OpenAI 兼容接口。
 
-FreeLLMAPI 是本地优先且单用户设计。你的提供商密钥保存在 SQLite 数据库中，静态加密，请求从你的机器发送到已启用的上游提供商。
+ModelHub 是本地优先且单用户设计。你的提供商密钥保存在 SQLite 数据库中，静态加密，请求从你的机器发送到已启用的上游提供商。
 
 ## Premium（实时目录）
 
@@ -429,11 +429,11 @@ for chunk in stream:
 
 **VS Code 内联自动补全（Continue）**
 
-FreeLLMAPI 暴露 `/v1/completions` 供发送传统 OpenAI prompt/suffix 请求的编辑器自动补全客户端使用。Continue 配置示例：
+ModelHub 暴露 `/v1/completions` 供发送传统 OpenAI prompt/suffix 请求的编辑器自动补全客户端使用。Continue 配置示例：
 
 ```yaml
 models:
-  - name: FreeLLMAPI Autocomplete
+  - name: ModelHub Autocomplete
     provider: openai
     model: auto
     apiBase: http://localhost:3001/v1
@@ -558,7 +558,7 @@ curl http://localhost:3001/v1/embeddings \
 
 ### Anthropic / Claude 客户端
 
-FreeLLMAPI 也能说 Anthropic 的 Messages API，因此任何为 Claude 构建的工具——包括 **Claude Code** 和官方 Anthropic SDK——都可以对你的免费池运行。将客户端指向你服务器的**源地址**（Anthropic 客户端会自动追加 `/v1/messages`），使用你的统一密钥进行认证。`x-api-key` 和 `Authorization: Bearer` 均被接受。
+ModelHub 也能说 Anthropic 的 Messages API，因此任何为 Claude 构建的工具——包括 **Claude Code** 和官方 Anthropic SDK——都可以对你的免费池运行。将客户端指向你服务器的**源地址**（Anthropic 客户端会自动追加 `/v1/messages`），使用你的统一密钥进行认证。`x-api-key` 和 `Authorization: Bearer` 均被接受。
 
 ```bash
 curl http://localhost:3001/v1/messages \
@@ -644,10 +644,10 @@ claude
 
 ## 上下文移交
 
-当 FreeLLMAPI 在对话中途回退到不同模型时（配额、频率限制、冷却），新模型不知道它正在接替别人的任务。**上下文移交**会在出站请求中添加一条紧凑的 `system` 消息，告知新模型这一点：
+当 ModelHub 在对话中途回退到不同模型时（配额、频率限制、冷却），新模型不知道它正在接替别人的任务。**上下文移交**会在出站请求中添加一条紧凑的 `system` 消息，告知新模型这一点：
 
 ```
-FreeLLMAPI 上下文移交：
+ModelHub 上下文移交：
 你正在接管另一个模型（groq:llama-3 → google:gemini-flash）正在进行中的对话。
 请使用本请求中已提供的对话上下文继续用户的任务。
 不要重新开始任务、重新询问已回答的设置问题或丢弃先前的工具结果。
@@ -672,7 +672,7 @@ FREELLMAPI_CONTEXT_HANDOFF=on_model_switch
 - 会话密钥：`X-Session-Id` 标头（如果存在），否则为首条用户消息的 SHA-1 哈希（与粘性会话相同）。
 - 存储仅在内存中。不会写入磁盘或日志。
 
-> **重要：** 上下文移交改善了通过 FreeLLMAPI 路由的对话的连续性。它无法恢复提供商内部隐藏状态或从未发送给代理的消息。
+> **重要：** 上下文移交改善了通过 ModelHub 路由的对话的连续性。它无法恢复提供商内部隐藏状态或从未发送给代理的消息。
 
 ## 局限性
 
@@ -822,7 +822,7 @@ NODE_ENV=development npm run db:migration:up
 
 ## 免责声明
 
-**本项目仅用于个人实验和学习，不适用于生产环境。** 免费额度的存在是为了让开发者进行原型设计；它们不是稳定、有支持的推理基础设施，也不应被视为如此。如果你在 FreeLLMAPI 之上构建了实际产品，请在上线前替换为付费 API。你与每个上游提供商的关系受你创建账户时接受的条款约束——当流量通过本项目代理时，这些条款仍然适用，你有责任遵守它们。
+**本项目仅用于个人实验和学习，不适用于生产环境。** 免费额度的存在是为了让开发者进行原型设计；它们不是稳定、有支持的推理基础设施，也不应被视为如此。如果你在 ModelHub 之上构建了实际产品，请在上线前替换为付费 API。你与每个上游提供商的关系受你创建账户时接受的条款约束——当流量通过本项目代理时，这些条款仍然适用，你有责任遵守它们。
 
 ## Star 历史
 
