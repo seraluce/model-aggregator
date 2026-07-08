@@ -1,5 +1,5 @@
 {
-  "name": "@modelhub/server",
+  "name": "@freellmapi/server",
   "version": "0.2.1",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "db:migration:create": "tsx src/db/migrate/cli.ts create"
   },
   "dependencies": {
-    "@modelhub/shared": "*",
+    "@freellmapi/shared": "*",
     "better-sqlite3": "^12.10.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
