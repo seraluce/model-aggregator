@@ -12,6 +12,10 @@ server/data/
 .env.local
 .DS_Store
 
+# Dev logs
+*.log
+*.err.log
+
 # Personal deployment scripts (contain keys/credentials — kept local)
 deploy-pi.sh
 update-hermes.sh

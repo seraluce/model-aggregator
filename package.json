@@ -1,32 +1,27 @@
 {
   "name": "modelhub",
   "private": true,
-  "workspaces": [
-    "shared",
-    "server",
-    "client"
-  ],
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client\"",
-    "dev:lan": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client -- --host\"",
-    "test": "npm run test -w server && npm run test -w client --if-present",
-    "build": "npm run build -w server && npm run build -w client",
-    "build:server": "npm run build -w server",
-    "test:migrations": "npm run test:migrations -w server",
-    "desktop:dev": "npm run build -w client && npm --prefix desktop run dev",
-    "desktop:dist": "npm run build -w client && npm --prefix desktop run dist",
-    "desktop:dist:win": "npm run build -w client && npm --prefix desktop run dist:win",
-    "db:migration:up": "npm run db:migration:up -w server",
-    "db:migration:down": "npm run db:migration:down -w server",
-    "db:migration:fresh": "npm run db:migration:fresh -w server",
-    "db:migration:status": "npm run db:migration:status -w server",
-    "db:migration:create": "npm run db:migration:create -w server"
+    "dev": "concurrently --kill-others-on-fail --names server,client \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "dev:lan": "concurrently --kill-others-on-fail --names server,client \"pnpm --filter server dev\" \"pnpm --filter client dev -- --host\"",
+    "test": "pnpm --filter server test && pnpm --filter client test --if-present",
+    "build": "pnpm --filter server build && pnpm --filter client build",
+    "build:server": "pnpm --filter server build",
+    "test:migrations": "pnpm --filter server test:migrations",
+    "desktop:dev": "pnpm --filter client build && pnpm --prefix desktop run dev",
+    "desktop:dist": "pnpm --filter client build && pnpm --prefix desktop run dist",
+    "desktop:dist:win": "pnpm --filter client build && pnpm --prefix desktop run dist:win",
+    "db:migration:up": "pnpm --filter server db:migration:up",
+    "db:migration:down": "pnpm --filter server db:migration:down",
+    "db:migration:fresh": "pnpm --filter server db:migration:fresh",
+    "db:migration:status": "pnpm --filter server db:migration:status",
+    "db:migration:create": "pnpm --filter server db:migration:create"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
   "engines": {
     "node": ">=20.18.0 <25.0.0",
-    "npm": ">=10.0.0"
+    "pnpm": ">=8.0.0"
   }
 }
